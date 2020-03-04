@@ -1,0 +1,21 @@
+-------
+
+To compile the program, just do
+
+$ gcc simpletun.c -o simpletun
+
+-------
+
+sudo openvpn --mktun --dev tun77 --user fluckmic
+sudo ip link set tun77 up
+sudo ip addr add 10.0.0.1/24 dev tun77
+sudo ping 10.0.0.2
+
+...
+
+on a different console:
+./tunclient
+
+-------
+
+sudo ip link delete tun77
