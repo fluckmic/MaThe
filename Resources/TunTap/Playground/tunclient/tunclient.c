@@ -1,6 +1,6 @@
 /**************************************************************************
  * simpletun.c                                                            *
- *************************************************************************/ 
+ *************************************************************************/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,10 +10,10 @@
 #include <linux/if_tun.h>
 #include <sys/ioctl.h>
 #include <fcntl.h>
-#include <arpa/inet.h> 
+#include <arpa/inet.h>
 
 /* buffer for reading from tun/tap interface, must be >= 1500 */
-#define BUFSIZE 2000   
+#define BUFSIZE 2000
 
 /**************************************************************************
  * tun_alloc: allocates or reconnects to a tun/tap device. The caller     *
@@ -50,7 +50,7 @@ int tun_alloc(char *dev, int flags) {
 }
 
 int main(int argc, char *argv[]) {
-  
+
   char tun_name[IFNAMSIZ];
   int tun_fd;
   uint16_t nread;
@@ -74,10 +74,9 @@ int main(int argc, char *argv[]) {
       close(tun_fd);
       exit(1);
     }
-
     /* Do whatever with the data */
     printf("Read %d bytes from device %s\n", nread, tun_name);
-  } 
-  
+  }
+
   return(0);
 }
