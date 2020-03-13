@@ -1,6 +1,10 @@
 #!/bin/bash
 # Setup the client side.
 
+sudo gcc tunrelais.c -o tunerelais
+sudo gcc tcpserver.c -o tcpserver
+
+
 sudo ip link delete tun66
 sleep 1
 
