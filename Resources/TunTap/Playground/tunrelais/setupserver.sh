@@ -4,8 +4,7 @@
 sudo gcc tunrelais.c -o tunerelais
 sudo gcc tcpserver.c -o tcpserver
 
-
-sudo ip link delete tun66
+sudo ip link delete tun66 2> \dev\null
 sleep 1
 
 sudo ./tunrelais -i tun66 -s &
