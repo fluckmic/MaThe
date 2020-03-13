@@ -11,8 +11,12 @@
  #include <unistd.h>
  #include <errno.h>
 
- #define IP_SERVER "10.0.0.2"
+ #define IP_CLIENT "10.0.1.1"
+ #define PORT_CLIENT 3636
+ #define IP_SERVER "10.0.2.1"
  #define PORT_SERVER 2727
+
+#define BUFFER_SIZE 10
 
  struct ip_option_header
  {
@@ -23,10 +27,21 @@
    uint8_t route_data[36];
  } option_data;
 
-void communicator(int sockfd)
-{
+ void communicator(int fd_socket)
+ {
+   char input_buffer[BUFFER_SIZE];
+   char output_buffer[] = "Ping";
+   int n;
 
-}
+   while(1)
+   {
+     sleep(5);
+     write(fd_socket, output_buffer, sizeof(output_buffer));
+     bzero(input_buffer, sizeof(input_buffer));
+     read(fd_socket, input_buffer, sizeof(input_buffer));
+     printf("From server: %s.\n", input_buffer);
+   }
+ }
 
 int main(int argc, char *argv[])
 {
@@ -38,6 +53,19 @@ int main(int argc, char *argv[])
   fd_socket = socket(AF_INET, SOCK_STREAM, 0);
   if(fd_socket == -1) { printf("Socket creation failed.\n"); return(0); }
   else { printf("Socket creation successfull.\n"); }
+
+  /*
+  // Create the client address for client side binding
+  bzero(&addr_client, sizeof(addr_client));
+  addr_client.sin_family      = AF_INET;
+  addr_client.sin_addr.s_addr = inet_addr(IP_CLIENT);
+  addr_client.sin_port        = htons(PORT_CLIENT);
+
+  // Bind the socket to the client address
+  ret = bind(fd_socket, (struct sockaddr *)&addr_client, sizeof(addr_client));
+  if (ret != 0) { printf("Socket bind failed.\n"); exit(0); }
+  else { printf("Socket successfully binded.\n"); }
+  */
 
   // Set the options
   bzero((char *)&option_data, sizeof(option_data));

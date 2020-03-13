@@ -12,12 +12,25 @@
  #include <unistd.h>
  #include <netinet/in.h>
 
- #define IP_SERVER "10.0.0.2"
+ #define IP_SERVER "10.0.2.1"
  #define PORT_SERVER 2727
 
-void communicator(int sockfd)
-{
+ #define BUFFER_SIZE 10
 
+void communicator(int fd_socket)
+{
+  char input_buffer[BUFFER_SIZE];
+  char output_buffer[] = "Pong";
+  int n;
+
+  while(1)
+  {
+    bzero(input_buffer, sizeof(input_buffer));
+    read(fd_socket, input_buffer, sizeof(input_buffer));
+    printf("From Client: %s.\n", input_buffer);
+    sleep(2);
+    write(fd_socket, output_buffer, sizeof(output_buffer));
+  }
 }
 
 int main(int argc, char *argv[])
