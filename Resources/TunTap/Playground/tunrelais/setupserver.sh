@@ -1,8 +1,9 @@
 #!/bin/bash
 # Setup the client side.
 
-ip link delete tun66 2> \dev\null
-ssleep 1
+ip link delete tun66 2> /dev/null
+kill $(pidof tunrelais) 2> /dev/null
+sleep 1
 
 gcc tunrelais.c -o tunerelais
 gcc tcpserver.c -o tcpserver
