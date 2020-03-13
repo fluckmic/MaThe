@@ -39,7 +39,7 @@
      write(fd_socket, output_buffer, sizeof(output_buffer));
      bzero(input_buffer, sizeof(input_buffer));
      read(fd_socket, input_buffer, sizeof(input_buffer));
-     printf("From server: %s.\n", input_buffer);
+     printf("tcpclient.c - From server: %s.\n", input_buffer);
    }
  }
 
@@ -51,8 +51,8 @@ int main(int argc, char *argv[])
 
   // Socket creation and verification
   fd_socket = socket(AF_INET, SOCK_STREAM, 0);
-  if(fd_socket == -1) { printf("Socket creation failed.\n"); return(0); }
-  else { printf("Socket creation successfull.\n"); }
+  if(fd_socket == -1) { printf("tcpclient.c - Socket creation failed.\n"); return(0); }
+  else { printf("tcpclient.c - Socket creation successfull.\n"); }
 
   /*
   // Create the client address for client side binding
@@ -63,8 +63,8 @@ int main(int argc, char *argv[])
 
   // Bind the socket to the client address
   ret = bind(fd_socket, (struct sockaddr *)&addr_client, sizeof(addr_client));
-  if (ret != 0) { printf("Socket bind failed.\n"); exit(0); }
-  else { printf("Socket successfully binded.\n"); }
+  if (ret != 0) { printf("tcpclient.c - Socket bind failed.\n"); exit(0); }
+  else { printf("tcpclient.c - Socket successfully binded.\n"); }
   */
 
   // Set the options
@@ -79,8 +79,8 @@ int main(int argc, char *argv[])
   }
 
   ret = setsockopt(fd_socket, IPPROTO_IP, IP_OPTIONS, (char *)&option_data, sizeof(option_data));
-  if(ret != 0) { printf("Setup of socket options failed: %s.\n", strerror(errno)); exit(0); }
-  else { printf("Setup of socket options successfull.\n"); }
+  if(ret != 0) { printf("tcpclient.c - Setup of socket options failed: %s.\n", strerror(errno)); exit(0); }
+  else { printf("tcpclient.c - Setup of socket options successfull.\n"); }
 
   // Create the server address
   bzero(&addr_server, sizeof(addr_server));
@@ -90,8 +90,8 @@ int main(int argc, char *argv[])
 
   // Connect the client socket to server socket
   ret = connect(fd_socket, (struct sockaddr *)&addr_server, sizeof(addr_server));
-  if (ret != 0) { printf("Connection with the server failed: %s.\n", strerror(errno)); exit(0); }
-  else { printf("Connection to the server successfull.\n"); }
+  if (ret != 0) { printf("tcpclient.c - Connection with the server failed: %s.\n", strerror(errno)); exit(0); }
+  else { printf("tcpclient.c - Connection to the server successfull.\n"); }
 
   // Pass socket to function interacting with the server.
   communicator(fd_socket);

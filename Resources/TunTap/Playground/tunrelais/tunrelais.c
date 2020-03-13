@@ -57,7 +57,7 @@ int tun_alloc(char *dev, int flags) {
   char *clonedev = "/dev/net/tun";
 
   if( (fd = open(clonedev , O_RDWR)) < 0 ) {
-    perror("Opening /dev/net/tun");
+    perror("tunrelais.c - Opening /dev/net/tun");
     return fd;
   }
 
@@ -70,7 +70,7 @@ int tun_alloc(char *dev, int flags) {
   }
 
   if( (err = ioctl(fd, TUNSETIFF, (void *)&ifr)) < 0 ) {
-    perror("ioctl(TUNSETIFF)");
+    perror("tunrelais.c - ioctl(TUNSETIFF)");
     close(fd);
     return err;
   }
@@ -89,7 +89,7 @@ int cread(int fd, char *buf, int n){
   int nread;
 
   if((nread=read(fd, buf, n)) < 0){
-    perror("Reading data");
+    perror("tunrelais.c - Reading data");
     exit(1);
   }
   return nread;
@@ -104,7 +104,7 @@ int cwrite(int fd, char *buf, int n){
   int nwrite;
 
   if((nwrite=write(fd, buf, n)) < 0){
-    perror("Writing data");
+    perror("tunrelais.c - Writing data");
     exit(1);
   }
   return nwrite;
@@ -219,7 +219,7 @@ int main(int argc, char *argv[]) {
         flags = IFF_TAP;
         break;
       default:
-        my_err("Unknown option %c\n", option);
+        my_err("tunrelais.c - Unknown option %c\n", option);
         usage();
     }
   }
@@ -228,31 +228,31 @@ int main(int argc, char *argv[]) {
   argc -= optind;
 
   if(argc > 0) {
-    my_err("Too many options!\n");
+    my_err("tunrelais.c - Too many options!\n");
     usage();
   }
 
   if(*if_name == '\0') {
-    my_err("Must specify interface name!\n");
+    my_err("tunrelais.c - Must specify interface name!\n");
     usage();
   } else if(cliserv < 0) {
-    my_err("Must specify client or server mode!\n");
+    my_err("tunrelais.c - Must specify client or server mode!\n");
     usage();
   } else if((cliserv == CLIENT)&&(*remote_ip == '\0')) {
-    my_err("Must specify server address!\n");
+    my_err("tunrelais.c - Must specify server address!\n");
     usage();
   }
 
   /* initialize tun/tap interface */
   if ( (tap_fd = tun_alloc(if_name, flags | IFF_NO_PI)) < 0 ) {
-    my_err("Error connecting to tun/tap interface %s!\n", if_name);
+    my_err("tunrelais.c - Error connecting to tun/tap interface %s!\n", if_name);
     exit(1);
   }
 
-  do_debug("Successfully connected to interface %s\n", if_name);
+  do_debug("tunrelais.c - Successfully connected to interface %s\n", if_name);
 
   if ( (sock_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-    perror("socket()");
+    perror("tunrelais.c - socket()");
     exit(1);
   }
 
@@ -267,19 +267,19 @@ int main(int argc, char *argv[]) {
 
     /* connection request */
     if (connect(sock_fd, (struct sockaddr*) &remote, sizeof(remote)) < 0) {
-      perror("connect()");
+      perror("tunrelais.c - connect()");
       exit(1);
     }
 
     net_fd = sock_fd;
-    do_debug("CLIENT: Connected to server %s\n", inet_ntoa(remote.sin_addr));
+    do_debug("tunrelais.c - CLIENT: Connected to server %s\n", inet_ntoa(remote.sin_addr));
 
   } else {
     /* Server, wait for connections */
 
     /* avoid EADDRINUSE error on bind() */
     if(setsockopt(sock_fd, SOL_SOCKET, SO_REUSEADDR, (char *)&optval, sizeof(optval)) < 0) {
-      perror("setsockopt()");
+      perror("tunrelais.c - setsockopt()");
       exit(1);
     }
 
@@ -288,12 +288,12 @@ int main(int argc, char *argv[]) {
     local.sin_addr.s_addr = htonl(INADDR_ANY);
     local.sin_port = htons(port);
     if (bind(sock_fd, (struct sockaddr*) &local, sizeof(local)) < 0) {
-      perror("bind()");
+      perror("tunrelais.c - bind()");
       exit(1);
     }
 
     if (listen(sock_fd, 5) < 0) {
-      perror("listen()");
+      perror("tunrelais.c - listen()");
       exit(1);
     }
 
@@ -301,11 +301,11 @@ int main(int argc, char *argv[]) {
     remotelen = sizeof(remote);
     memset(&remote, 0, remotelen);
     if ((net_fd = accept(sock_fd, (struct sockaddr*)&remote, &remotelen)) < 0) {
-      perror("accept()");
+      perror("tunrelais.c - accept()");
       exit(1);
     }
 
-    do_debug("SERVER: Client connected from %s\n", inet_ntoa(remote.sin_addr));
+    do_debug("tunrelais.c - SERVER: Client connected from %s\n", inet_ntoa(remote.sin_addr));
   }
 
   /* use select() to handle two descriptors at once */
@@ -325,7 +325,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (ret < 0) {
-      perror("select()");
+      perror("tunrelais.c - select()");
       exit(1);
     }
 
@@ -335,14 +335,14 @@ int main(int argc, char *argv[]) {
       nread = cread(tap_fd, buffer, BUFSIZE);
 
       tap2net++;
-      do_debug("TAP2NET %lu: Read %d bytes from the tap interface\n", tap2net, nread);
+      do_debug("tunrelais.c - TAP2NET %lu: Read %d bytes from the tap interface\n", tap2net, nread);
 
       /* write length + packet */
       plength = htons(nread);
       nwrite = cwrite(net_fd, (char *)&plength, sizeof(plength));
       nwrite = cwrite(net_fd, buffer, nread);
 
-      do_debug("TAP2NET %lu: Written %d bytes to the network\n", tap2net, nwrite);
+      do_debug("tunrelais.c - TAP2NET %lu: Written %d bytes to the network\n", tap2net, nwrite);
     }
 
     if(FD_ISSET(net_fd, &rd_set)) {
@@ -360,11 +360,11 @@ int main(int argc, char *argv[]) {
 
       /* read packet */
       nread = read_n(net_fd, buffer, ntohs(plength));
-      do_debug("NET2TAP %lu: Read %d bytes from the network\n", net2tap, nread);
+      do_debug("tunrelais.c - NET2TAP %lu: Read %d bytes from the network\n", net2tap, nread);
 
       /* now buffer[] contains a full packet or frame, write it into the tun/tap interface */
       nwrite = cwrite(tap_fd, buffer, nread);
-      do_debug("NET2TAP %lu: Written %d bytes to the tap interface\n", net2tap, nwrite);
+      do_debug("tunrelais.c - NET2TAP %lu: Written %d bytes to the tap interface\n", net2tap, nwrite);
     }
   }
 
