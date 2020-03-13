@@ -26,7 +26,7 @@ int tun_alloc(char *dev, int flags) {
   char *clonedev = "/dev/net/tun";
 
   if( (fd = open(clonedev , O_RDWR)) < 0 ) {
-    perror("Opening /dev/net/tun");
+    perror("tunclient.c -  Opening /dev/net/tun");
     return fd;
   }
 
@@ -39,7 +39,7 @@ int tun_alloc(char *dev, int flags) {
   }
 
   if( (err = ioctl(fd, TUNSETIFF, (void *)&ifr)) < 0 ) {
-    perror("ioctl(TUNSETIFF)");
+    perror("tunclient.c - ioctl(TUNSETIFF)");
     close(fd);
     return err;
   }
@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
   tun_fd = tun_alloc(tun_name, IFF_TUN | IFF_NO_PI);  /* tun interface */
 
   if(tun_fd < 0){
-    perror("Allocating interface");
+    perror("tunclient.c - Allocating interface");
     exit(1);
   }
 
@@ -70,12 +70,12 @@ int main(int argc, char *argv[]) {
     /* Note that "buffer" should be at least the MTU size of the interface, eg 1500 bytes */
     nread = read(tun_fd,buffer,sizeof(buffer));
     if(nread < 0) {
-      perror("Reading from interface");
+      perror("tunclient.c - Reading from interface");
       close(tun_fd);
       exit(1);
     }
     /* Do whatever with the data */
-    printf("Read %d bytes from device %s\n", nread, tun_name);
+    printf("tunclient.c - Read %d bytes from device %s\n", nread, tun_name);
   }
 
   return(0);
