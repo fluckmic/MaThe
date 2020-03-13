@@ -5,7 +5,7 @@ ip link delete tun33 2> /dev/null
 kill $(pidof tunrelais) 2> /dev/null
 sleep 1
 
-gcc tunrelais.c -o tunerelais
+gcc tunrelais.c -o tunrelais
 gcc tcpclient.c -o tcpclient
 
 ./tunrelais -i tun33 -c 192.168.1.45 -d &
