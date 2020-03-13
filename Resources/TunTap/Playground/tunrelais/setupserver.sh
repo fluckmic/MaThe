@@ -1,5 +1,5 @@
 #!/bin/bash
-# Setup the client side.
+# Setup the server side.
 
 ip link delete tun66 2> /dev/null
 kill $(pidof tunrelais) 2> /dev/null
