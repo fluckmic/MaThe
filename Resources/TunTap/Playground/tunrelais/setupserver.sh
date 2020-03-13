@@ -1,15 +1,16 @@
 #!/bin/bash
 # Setup the client side.
 
-sudo gcc tunrelais.c -o tunerelais
-sudo gcc tcpserver.c -o tcpserver
+ip link delete tun66 2> \dev\null
+ssleep 1
 
-sudo ip link delete tun66 2> \dev\null
+gcc tunrelais.c -o tunerelais
+gcc tcpserver.c -o tcpserver
+
+./tunrelais -i tun66 -s &
 sleep 1
 
-sudo ./tunrelais -i tun66 -s &
+ip link set tun66 up
+ip addr add 10.0.2.1/24 dev tun66
 
-sudo ip link set tun66 up
-sudo ip addr add 10.0.2.1/24 dev tun66
-
-sudo ./tcpserver
+./tcpserver
