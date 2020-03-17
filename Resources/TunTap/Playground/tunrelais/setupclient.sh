@@ -7,8 +7,8 @@ kill $(pidof tunrelaisclient) 2> /dev/null
 
 sleep 2
 
-gcc tunrelaisclient.c -o tunrelaisclient
-gcc tcpclient.c       -o tcpclient
+gcc tunrelaisclient.c -o tunrelaisclient -g
+gcc tcpclient.c       -o tcpclient -g
 
 ip link set dev lo              multipath off
 ip link set dev enp0s3          multipath off

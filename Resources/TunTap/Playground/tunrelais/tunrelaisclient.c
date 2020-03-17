@@ -24,11 +24,48 @@
 #define NAME_VIF_1 "tun33"
 #define NAME_VIF_2 "tun34"
 
-#define DEBUG 1
+#define DEBUG 0
 
 int debug = DEBUG;
 
 #define max(a,b) ((a)>(b) ? (a):(b))
+
+struct ip_packet_header
+{
+  uint8_t        version;
+  uint8_t        ihl;
+  uint8_t        type_of_service;
+  uint16_t       total_length;
+  struct in_addr source;
+  struct in_addr destination;
+} ip_header;
+
+struct tcp_packet_header
+{
+  unsigned short source_port;
+  unsigned short destination_port;
+} tcp_header;
+
+struct shila_packet_header
+{
+  struct ip_packet_header  ip;
+  struct tcp_packet_header tcp;
+} shila_header;
+
+/**************************************************************************
+ * parse_packet:                                                          *
+ **************************************************************************/
+int parse_packet(char *buf, int n, struct shila_packet_header* shila_packet)
+{
+  // Parse the ip header
+  //shila_packet->ip.source.s_addr      = (unsigned long) atol(&buf[12]);
+  //shila_packet->ip.destination.s_addr = (unsigned long) atol(&buf[16]);
+  //printf("%lu\n", shila_packet->ip.source.s_addr);
+  //printf("%s\n", inet_ntoa(shila_packet->ip.source));
+  //printf("%lu\n", shila_packet->ip.destination.s_addr);
+  //printf("%s\n\n", inet_ntoa(shila_packet->ip.destination));
+  return 0;
+}
 
 /**************************************************************************
  * tun_alloc: allocates or reconnects to a tun/tap device. The caller     *
@@ -237,6 +274,11 @@ int main(int argc, char *argv[])
       // read packet
       nread = read_n(fd_net, buffer, ntohs(plength));
       do_debug("tunrelais.c - Read %d bytes from the network.\n", nread);
+
+      // parse the packet
+      struct shila_packet_header shila_packet;
+      memset(&shila_packet, 0, sizeof(shila_packet));
+      ret = parse_packet(buffer, nread, &shila_packet);
 
       // now buffer[] contains a full packet or frame, write it into the tun/tap interface
       nwrite = cwrite(fd_vif_1, buffer, nread);
