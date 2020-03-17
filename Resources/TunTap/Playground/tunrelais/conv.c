@@ -37,8 +37,9 @@ struct tcp_packet_header
 
 struct shila_packet_header
 {
-  struct ip_packet_header  ip;
-  struct tcp_packet_header tcp;
+  char                      add_info[32];
+  struct ip_packet_header   ip;
+  struct tcp_packet_header  tcp;
 } shila_header;
 
 int parse_packet(char *buf, int n, struct shila_packet_header* shila_packet)
@@ -56,9 +57,27 @@ int parse_packet(char *buf, int n, struct shila_packet_header* shila_packet)
   shila_packet->ip.source.s_addr      = *(unsigned long*)(&buf[12]);
   shila_packet->ip.destination.s_addr = *(unsigned long*)(&buf[16]);
 
+  // Check if there are extra options.
+  if(shila_packet->ip.ihl > 5)
+  {
+    if(!buf[20] ==  7) // Loose Source and Record Route
+    {
+      if(buf[21] == 39)
+      {
+        if(buf[22] ==  8) // One hop.
+        {
+          for(int i = 0; i < 32; i++)
+          {
+            shila_packet->add_info[i] = buf[27 + i];
+          }
+        }
+      }
+    }
+  }
+
   printf("\n");
-  printf("++++++++++++++++++++++++++++++++++++++++++\n");
-  printf("++++++++++++++++++++++++++++++++++++++++++\n");
+  printf("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+  printf("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
   printf("Version: %i\n", shila_packet->ip.version);
   printf("IHL: %i\n", shila_packet->ip.ihl);
   printf("Type of service: %i\n", shila_packet->ip.type_of_service);
@@ -69,7 +88,13 @@ int parse_packet(char *buf, int n, struct shila_packet_header* shila_packet)
   printf("Header checksum: %x\n", ntohs(shila_packet->ip.header_checksum));
   printf("Source: %s\n", inet_ntoa(shila_packet->ip.source));
   printf("Destination: %s\n", inet_ntoa(shila_packet->ip.destination));
-  printf("++++++++++++++++++++++++++++++++++++++++++");
+
+  printf("From app: ");
+  for(int i = 0; i < 32; i++)
+    printf("%d ", shila_packet->add_info[i]);
+  printf("\n");
+
+  printf("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
   printf("\n");
 
   const uint8_t tcp_header_base = (shila_packet->ip.ihl * 4);
@@ -79,8 +104,8 @@ int parse_packet(char *buf, int n, struct shila_packet_header* shila_packet)
 
   printf("Source port: %u\n", ntohs(shila_packet->tcp.source_port));
   printf("Destination port: %u\n", ntohs(shila_packet->tcp.destination_port));
-  printf("++++++++++++++++++++++++++++++++++++++++++\n");
-  printf("++++++++++++++++++++++++++++++++++++++++++\n");
+  printf("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+  printf("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 
   return 0;
 }
