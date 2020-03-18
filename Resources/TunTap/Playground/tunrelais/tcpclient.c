@@ -71,6 +71,8 @@ int main(int argc, char *argv[])
   option_data.length        = 39;
   option_data.pointer       = 4;  // Offset to first address (addrs)
 
+  // Polute the ip packet with additional information which can be used
+  // in the shim layer
   for(int i = 3; i < 35; i++)
   {
     option_data.route_data[i] = i - 2;

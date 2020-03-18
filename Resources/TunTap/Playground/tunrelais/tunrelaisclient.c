@@ -21,14 +21,120 @@
 #define SERVER_IP "192.168.1.45"
 #define SERVER_PORT 55555
 
+#define VIF_1_IP "10.0.1.1"
+#define VIF_2_IP "10.0.3.1"
+
 #define NAME_VIF_1 "tun33"
 #define NAME_VIF_2 "tun34"
 
-#define DEBUG 1
+#define DEBUG         0
+#define DEBUG_PARSING 0
 
-int debug = DEBUG;
+int debug         = DEBUG;
+int debug_parsing = DEBUG_PARSING;
 
 #define max(a,b) ((a)>(b) ? (a):(b))
+
+struct ip_packet_header
+{
+  uint8_t        version;
+  uint8_t        ihl;
+  uint8_t        type_of_service;
+  uint16_t       total_length;
+  uint16_t       identification;
+  uint8_t        ttl;
+  uint8_t        protocol;
+  uint16_t       header_checksum;
+  struct in_addr source;
+  struct in_addr destination;
+} ip_header;
+
+struct tcp_packet_header
+{
+  uint16_t       source_port;
+  uint16_t       destination_port;
+} tcp_header;
+
+struct shila_packet_header
+{
+  char                      add_info[32];
+  struct ip_packet_header   ip;
+  struct tcp_packet_header  tcp;
+} shila_header;
+
+int parse_packet(char *buf, int n, struct shila_packet_header* shila_packet)
+{
+
+  // It is assumed that buffer contains the data in network byte order (big endian)
+  shila_packet->ip.version            = buf[0] >> 4;
+  shila_packet->ip.ihl                = buf[0] & 0x0f;
+  shila_packet->ip.type_of_service    = buf[1];
+  shila_packet->ip.total_length       = *(uint16_t*) (&buf[2]);
+  shila_packet->ip.identification     = *(uint16_t*) (&buf[4]);
+  shila_packet->ip.ttl                = buf[8];
+  shila_packet->ip.protocol           = buf[9];
+  shila_packet->ip.header_checksum    = *(uint16_t*) (&buf[10]);
+  shila_packet->ip.source.s_addr      = *(unsigned long*)(&buf[12]);
+  shila_packet->ip.destination.s_addr = *(unsigned long*)(&buf[16]);
+
+  // Check if there are extra options.
+  if(shila_packet->ip.ihl > 5)
+  {
+    if(!buf[20] ==  7) // Loose Source and Record Route
+    {
+      if(buf[21] == 39)
+      {
+        if(buf[22] ==  8) // One hop.
+        {
+          for(int i = 0; i < 32; i++)
+          {
+            shila_packet->add_info[i] = buf[27 + i];
+          }
+        }
+      }
+    }
+  }
+
+  if(debug && debug_parsing)
+  {
+    printf("\n");
+    printf("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+    printf("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+    printf("Version: %i\n", shila_packet->ip.version);
+    printf("IHL: %i\n", shila_packet->ip.ihl);
+    printf("Type of service: %i\n", shila_packet->ip.type_of_service);
+    printf("Total length: %u\n", ntohs(shila_packet->ip.total_length));
+    printf("Identification: %u\n", ntohs(shila_packet->ip.identification));
+    printf("TTL: %i\n", shila_packet->ip.ttl);
+    printf("Protocol: %i\n", shila_packet->ip.protocol);
+    printf("Header checksum: %x\n", ntohs(shila_packet->ip.header_checksum));
+    printf("Source: %s\n", inet_ntoa(shila_packet->ip.source));
+    printf("Destination: %s\n", inet_ntoa(shila_packet->ip.destination));
+
+    printf("From app: ");
+    for(int i = 0; i < 32; i++)
+      printf("%d ", shila_packet->add_info[i]);
+    printf("\n");
+
+    printf("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    printf("\n");
+  }
+
+  const uint8_t tcp_header_base = (shila_packet->ip.ihl * 4);
+
+  shila_packet->tcp.source_port       = *(uint16_t*) (&buf[tcp_header_base]);
+  shila_packet->tcp.destination_port  = *(uint16_t*) (&buf[tcp_header_base + 2]);
+
+  if(debug && debug_parsing)
+  {
+    printf("Source port: %u\n", ntohs(shila_packet->tcp.source_port));
+    printf("Destination port: %u\n", ntohs(shila_packet->tcp.destination_port));
+    printf("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+    printf("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+  }
+
+  return 0;
+}
 
 /**************************************************************************
  * tun_alloc: allocates or reconnects to a tun/tap device. The caller     *
@@ -238,9 +344,23 @@ int main(int argc, char *argv[])
       nread = read_n(fd_net, buffer, ntohs(plength));
       do_debug("tunrelais.c - Read %d bytes from the network.\n", nread);
 
-      // now buffer[] contains a full packet or frame, write it into the tun/tap interface
-      nwrite = cwrite(fd_vif_1, buffer, nread);
-      do_debug("tunrelais.c - Written %d bytes to %s.\n", nwrite, name_vif_1);
+      // parse the packet
+      struct shila_packet_header shila_packet;
+      memset(&shila_packet, 0, sizeof(shila_packet));
+      ret = parse_packet(buffer, nread, &shila_packet);
+
+      if(shila_packet.ip.destination.s_addr == inet_addr(VIF_1_IP))
+      {
+        // now buffer[] contains a full packet or frame, write it into the tun/tap interface
+        nwrite = cwrite(fd_vif_1, buffer, nread);
+        do_debug("tunrelais.c - Written %d bytes to %s.\n", nwrite, name_vif_1);
+      }
+      else if(shila_packet.ip.destination.s_addr == inet_addr(VIF_2_IP))
+      {
+        // now buffer[] contains a full packet or frame, write it into the tun/tap interface
+        nwrite = cwrite(fd_vif_2, buffer, nread);
+        do_debug("tunrelais.c - Written %d bytes to %s.\n", nwrite, name_vif_2);
+      }
     }
   }
 
