@@ -31,14 +31,16 @@
  {
    char input_buffer[BUFFER_SIZE];
    char output_buffer[] = "Ping";
-   int n;
 
    while(1)
    {
      sleep(5);
+
      write(fd_socket, output_buffer, sizeof(output_buffer));
+
      bzero(input_buffer, sizeof(input_buffer));
-     read(fd_socket, input_buffer, sizeof(input_buffer));
+     ssize_t nread = read(fd_socket, input_buffer, sizeof(input_buffer));
+     if(nread < 1) break;
      printf("tcpclient.c - From server: %s.\n", input_buffer);
    }
  }

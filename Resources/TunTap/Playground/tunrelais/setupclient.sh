@@ -5,16 +5,18 @@ ip link delete tun33 2> /dev/null
 ip link delete tun34 2> /dev/null
 kill $(pidof tunrelaisclient) 2> /dev/null
 
+sysctl net.mptcp.mptcp_scheduler=roundrobin
+
 sleep 2
 
 gcc tunrelaisclient.c -o tunrelaisclient -g
 gcc tcpclient.c       -o tcpclient -g
 
 ip link set dev lo              multipath off
-ip link set dev enp0s3          multipath off
-ip link set dev enp0s8          multipath off
-ip link set dev docker0         multipath off
+ip link set dev ens33           multipath off
 ip link set dev br-f4bf2f554158 multipath off
+ip link set dev docker0         multipath off
+ip link set dev ens34           multipath off
 
 sleep 1
 
