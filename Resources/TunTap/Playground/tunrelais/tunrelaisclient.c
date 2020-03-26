@@ -18,7 +18,7 @@
 // buffer for reading from tun/tap interface, must be >= 1500
 #define BUFFER_SIZE 2000
 
-#define SERVER_IP "192.168.1.48"
+#define SERVER_IP "192.168.1.58"
 #define SERVER_PORT 55555
 
 #define VIF_1_IP "10.0.1.1"
