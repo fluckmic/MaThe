@@ -5,7 +5,7 @@ ip link delete tun33 2> /dev/null
 ip link delete tun34 2> /dev/null
 kill $(pidof tunrelaisclient) 2> /dev/null
 
-sysctl net.mptcp.mptcp_scheduler=roundrobin
+sysctl net.mptcp.mptcp_scheduler=redundant
 
 sleep 2
 
