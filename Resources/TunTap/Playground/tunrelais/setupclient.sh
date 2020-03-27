@@ -5,7 +5,7 @@ ip link delete tun33 2> /dev/null
 ip link delete tun34 2> /dev/null
 kill $(pidof tunrelaisclient) 2> /dev/null
 
-sysctl net.mptcp.mptcp_scheduler=redundant
+sysctl -w net.mptcp.mptcp_scheduler=roundrobin
 
 sleep 2
 
@@ -24,16 +24,17 @@ sleep 1
 
 sleep 5
 
-ip route add 10.7.0.9/24 dev tun33 scope link table ens33
-ip route add 10.7.0.9/24 dev tun33 scope link table ens34
-ip route add 10.7.0.9/24 dev tun33 scope link table docker0
-ip route add 10.7.0.9/24 dev tun33 scope link table br-26cedfcb1b6d
-
 ip link set tun33 up
 ip addr add 10.0.1.1/24 dev tun33
 
 ip link set tun34 up
 ip addr add 10.0.3.1/24 dev tun34
+
+ip rule add to 10.7.0.9 iif lo           table tun33
+ip rule add to 10.7.0.9 iif ens33        table tun33
+ip rule add to 10.7.0.9 iif 26cedfcb1b6d table tun33
+ip rule add to 10.7.0.9 iif docker0      table tun33
+ip rule add to 10.7.0.9 iif ens34        table tun33
 
 sleep 1
 
