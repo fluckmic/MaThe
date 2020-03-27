@@ -5,6 +5,7 @@ ip link delete tun33 2> /dev/null
 ip link delete tun34 2> /dev/null
 kill $(pidof tunrelaisclient) 2> /dev/null
 
+/sbin/modprobe mptcp_rr
 sysctl -w net.mptcp.mptcp_scheduler=roundrobin
 
 sleep 2
@@ -37,5 +38,7 @@ ip rule add to 10.7.0.9 iif docker0      table tun33
 ip rule add to 10.7.0.9 iif ens34        table tun33
 
 sleep 1
+
+wireshark &
 
 ./tcpclient

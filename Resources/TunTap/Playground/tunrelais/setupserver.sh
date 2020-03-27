@@ -14,4 +14,8 @@ sleep 1
 ip link set tun66 up
 ip addr add 10.7.0.9/24 dev tun66
 
+wireshark &
+
+sleep 1
+
 ./tcpserver
