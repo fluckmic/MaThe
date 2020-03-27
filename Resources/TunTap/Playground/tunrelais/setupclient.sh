@@ -3,7 +3,9 @@
 
 ip link delete tun33 2> /dev/null
 ip link delete tun34 2> /dev/null
+
 kill $(pidof tunrelaisclient) 2> /dev/null
+killall wireshark
 
 /sbin/modprobe mptcp_rr
 sysctl -w net.mptcp.mptcp_scheduler=roundrobin

@@ -2,7 +2,10 @@
 # Setup the server side.
 
 ip link delete tun66 2> /dev/null
+
 kill $(pidof tunrelais) 2> /dev/null
+killall wireshark
+
 sleep 1
 
 gcc tunrelais.c -o tunrelais
