@@ -24,6 +24,11 @@ sleep 1
 
 sleep 5
 
+ip route add 10.7.0.9/24 dev tun33 scope link table ens33
+ip route add 10.7.0.9/24 dev tun33 scope link table ens34
+ip route add 10.7.0.9/24 dev tun33 scope link table docker0
+ip route add 10.7.0.9/24 dev tun33 scope link table br-26cedfcb1b6d
+
 ip link set tun33 up
 ip addr add 10.0.1.1/24 dev tun33
 

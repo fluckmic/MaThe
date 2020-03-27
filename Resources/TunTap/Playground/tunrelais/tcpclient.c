@@ -11,9 +11,9 @@
  #include <unistd.h>
  #include <errno.h>
 
- #define IP_CLIENT "10.0.1.1"
- #define PORT_CLIENT 3636
- #define IP_SERVER "10.0.2.1"
+ //#define IP_CLIENT "10.0.1.1"
+ //#define PORT_CLIENT 3636
+ #define IP_SERVER "10.7.0.9"
  #define PORT_SERVER 2727
 
 #define BUFFER_SIZE 10
@@ -56,6 +56,7 @@ int main(int argc, char *argv[])
   if(fd_socket == -1) { printf("tcpclient.c - Socket creation failed.\n"); return(0); }
   else { printf("tcpclient.c - Socket creation successfull.\n"); }
 
+  /*
   // Create the client address for client side binding
   bzero(&addr_client, sizeof(addr_client));
   addr_client.sin_family      = AF_INET;
@@ -66,6 +67,7 @@ int main(int argc, char *argv[])
   ret = bind(fd_socket, (struct sockaddr *)&addr_client, sizeof(addr_client));
   if (ret != 0) { printf("tcpclient.c - Socket bind failed.\n"); exit(0); }
   else { printf("tcpclient.c - Socket successfully binded.\n"); }
+  */
 
   // Set the options
   bzero((char *)&option_data, sizeof(option_data));

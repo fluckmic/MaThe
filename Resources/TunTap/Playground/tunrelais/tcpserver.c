@@ -13,9 +13,8 @@
  #include <netinet/in.h>
  #include <errno.h>
 
- #define IP_SERVER "10.0.2.1"
+ //#define IP_SERVER "10.0.2.1"
  #define PORT_SERVER 2727
-
  #define BUFFER_SIZE 10
 
  /*

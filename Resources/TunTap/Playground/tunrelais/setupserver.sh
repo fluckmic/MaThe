@@ -12,6 +12,6 @@ gcc tcpserver.c -o tcpserver
 sleep 1
 
 ip link set tun66 up
-ip addr add 10.0.2.1/24 dev tun66
+ip addr add 10.7.0.9/24 dev tun66
 
 ./tcpserver
