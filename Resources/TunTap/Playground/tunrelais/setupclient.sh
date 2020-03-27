@@ -33,11 +33,7 @@ ip addr add 10.0.1.1/24 dev tun33
 ip link set tun34 up
 ip addr add 10.0.3.1/24 dev tun34
 
-ip rule add to 10.7.0.9 iif lo           table tun33
-ip rule add to 10.7.0.9 iif ens33        table tun33
-ip rule add to 10.7.0.9 iif 26cedfcb1b6d table tun33
-ip rule add to 10.7.0.9 iif docker0      table tun33
-ip rule add to 10.7.0.9 iif ens34        table tun33
+ip rule add to 10.7.0.9 iif lo table tun33
 
 sleep 1
 
