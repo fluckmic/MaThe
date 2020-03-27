@@ -1,19 +1,23 @@
 #!/bin/bash
-# Setup the client side.
 
+# Delete and close all the leftovers from the last run.
 ip link delete tun33 2> /dev/null
 ip link delete tun34 2> /dev/null
+ip link delete tun35 2> /dev/null
+ip link delete tun66 2> /dev/null
 
 kill $(pidof tunrelaisclient) 2> /dev/null
-killall wireshark
+killall wireshark 2> /dev/null
 
+# Load round robin mptcp module and activate it 
 /sbin/modprobe mptcp_rr
-sysctl -w net.mptcp.mptcp_scheduler=roundrobin
+sysctl -w net.mptcp.mptcp_scheduler=roundrobin 2> /dev/null
 
 sleep 2
 
-gcc tunrelaisclient.c -o tunrelaisclient -g
-gcc tcpclient.c       -o tcpclient -g
+gcc mptcp-over-tcp-prototype.c -o tunrelaisclient -g
+gcc tcpclient.c                -o tcpclient -g
+gcc tcpserver.c                -o tcpclient -g
 
 ip link set dev lo              multipath off
 ip link set dev ens33           multipath off
