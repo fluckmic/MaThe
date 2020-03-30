@@ -18,7 +18,7 @@
 // buffer for reading from tun/tap interface, must be >= 1500
 #define BUFFER_SIZE 2000
 
-#define SERVER 1
+#define SERVER 0
 #define SERVER_IP "192.168.1.58"
 #define SERVER_PORT 55555
 
@@ -306,6 +306,8 @@ int main(int argc, char *argv[])
 
   if(SERVER)
   {
+    do_debug("mptcp-over-tcp-prototype.c - Running as SERVER.\n");
+
     /* avoid EADDRINUSE error on bind() */
     if(setsockopt(fd_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&optval, sizeof(optval)) < 0) {
       perror("mptcp-over-tcp-prototype.c - setsockopt()");
@@ -338,6 +340,8 @@ int main(int argc, char *argv[])
   }
   else
   {
+    do_debug("mptcp-over-tcp-prototype.c - Running as CLIENT.\n");
+
     memset(&address_remote, 0, sizeof(address_remote));
     address_remote.sin_family      = AF_INET;
     address_remote.sin_addr.s_addr = inet_addr(SERVER_IP);
