@@ -3,7 +3,7 @@
 # Assumes that the virtual tun interfaces are already alocated.
 
 # Create a link between the real and the engress namespaces
-ip link add engress type veth peer name real
+#ip link add engress type veth peer name real
 
 # Create namespaces
 ip netns add shila-ingress
@@ -34,8 +34,8 @@ ip netns exec shila-engress ip link set engress up
 ip netns exec shila-ingress ip addr add 10.7.0.9/24 dev tun66
 ip netns exec shila-ingress ip link set tun66 up
 
-ip addr add 10.254.254.1/24 dev real
-ip link set real up
+#ip addr add 10.254.254.1/24 dev real
+#ip link set real up
 
 # Creates the routing entries necessary for MPTCP
 ip netns exec shila-engress ip rule add from 10.0.1.1 table 1
@@ -50,6 +50,6 @@ ip netns exec shila-engress ip route add table 3 default dev tun35 scope link
 ip netns exec shila-ingress ip rule add from 10.7.0.9 table 1
 ip netns exec shila-ingress ip route add table 1 default dev tun66 scope link
 
-# Move the
-ip rule add to 10.7.0.9 iif lo table 252
-ip route add table 252 default dev real scope link
+
+#ip rule add to 10.7.0.9 iif lo table 252
+#ip route add table 252 default dev real scope link
