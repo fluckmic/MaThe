@@ -10,7 +10,8 @@ kill $(pidof mptcp-over-tcp-prototype)  2> /dev/null
 kill $(pidof tcpclient)                 2> /dev/null
 kill $(pidof tcpserver)                 2> /dev/null
 killall wireshark                       2> /dev/null
-sudo ip rule delete to 10.7.0.9 iif lo table tun33
+
+ip rule delete to 10.7.0.9 iif lo              table tun33
 
 # Load round robin mptcp module and activate it
 /sbin/modprobe mptcp_rr
@@ -32,7 +33,7 @@ sleep 1
 
 ./mptcp-over-tcp-prototype &
 
-sleep 5
+sleep 1
 
 ip link set tun33 up
 ip addr add 10.0.1.1/24 dev tun33
@@ -44,13 +45,20 @@ ip link set tun35 up
 ip addr add 10.0.3.1/24 dev tun35
 
 ip link set tun66 up
-ip addr add 10.9.0.7/24 dev tun66
+ip addr add 10.7.0.9/24 dev tun66
 
-ip rule add to 10.7.0.9 iif lo table tun33
+ip rule add to 10.7.0.9 iif lo              table tun33
+ip route delete table local 10.7.0.9
+ip route delete table local 10.0.1.1
+ip route delete table local 10.0.2.1
+ip route delete table local 10.0.3.1
+
+ip rule add table 252
+ip route add local 10.7.0.9 dev tun66 proto kernel scope host src 10.7.0.9 table 252
+ip route add local 10.0.1.1 dev tun33 proto kernel scope host src 10.0.1.1 table 252
+ip route add local 10.0.2.1 dev tun34 proto kernel scope host src 10.0.2.1 table 252
+ip route add local 10.0.3.1 dev tun34 proto kernel scope host src 10.0.3.1 table 252
 
 sleep 1
 
 wireshark &
-
-./tcpclient &
-./tcpserver &

@@ -13,7 +13,7 @@
  #include <netinet/in.h>
  #include <errno.h>
 
- //#define IP_SERVER "10.0.2.1"
+ #define IP_SERVER "10.7.0.9"
  #define PORT_SERVER 2727
  #define BUFFER_SIZE 1000
 
@@ -66,8 +66,8 @@ int main(int argc, char *argv[])
   // Create the server address
   bzero(&addr_server, sizeof(addr_server));
   addr_server.sin_family      = AF_INET;
-  addr_server.sin_addr.s_addr = htonl(INADDR_ANY);
-  //addr_server.sin_addr.s_addr = inet_addr(IP_SERVER);
+  //addr_server.sin_addr.s_addr = htonl(INADDR_ANY);
+  addr_server.sin_addr.s_addr = inet_addr(IP_SERVER);
   addr_server.sin_port        = htons(PORT_SERVER);
 
   // Bind the socket to the server address

@@ -18,21 +18,21 @@
 // buffer for reading from tun/tap interface, must be >= 1500
 #define BUFFER_SIZE 2000
 
-#define SERVER 0
+#define SERVER 1
 #define SERVER_IP "192.168.1.58"
 #define SERVER_PORT 55555
 
 #define VIF_1_IP "10.0.1.1"
 #define VIF_2_IP "10.0.2.1"
 #define VIF_3_IP "10.0.3.1"
-#define VIF_I_IP "10.9.0.7"
+#define VIF_I_IP "10.7.0.9"
 
 #define NAME_VIF_1 "tun33"
 #define NAME_VIF_2 "tun34"
 #define NAME_VIF_3 "tun35"
 #define NAME_VIF_I "tun66"
 
-#define DEBUG         1
+#define DEBUG         0
 #define DEBUG_PARSING 0
 
 int debug         = DEBUG;
@@ -306,7 +306,7 @@ int main(int argc, char *argv[])
 
   if(SERVER)
   {
-    do_debug("mptcp-over-tcp-prototype.c - Running as SERVER.\n");
+    printf("mptcp-over-tcp-prototype.c - Running as SERVER.\n");
 
     /* avoid EADDRINUSE error on bind() */
     if(setsockopt(fd_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&optval, sizeof(optval)) < 0) {
@@ -336,11 +336,11 @@ int main(int argc, char *argv[])
       exit(1);
     }
 
-    do_debug("mptcp-over-tcp-prototype.c - SERVER: Client connected from %s\n", inet_ntoa(address_remote.sin_addr));
+    printf("mptcp-over-tcp-prototype.c - SERVER: Client connected from %s\n", inet_ntoa(address_remote.sin_addr));
   }
   else
   {
-    do_debug("mptcp-over-tcp-prototype.c - Running as CLIENT.\n");
+    printf("mptcp-over-tcp-prototype.c - Running as CLIENT.\n");
 
     memset(&address_remote, 0, sizeof(address_remote));
     address_remote.sin_family      = AF_INET;
@@ -354,7 +354,7 @@ int main(int argc, char *argv[])
     }
 
     fd_net = fd_socket;
-    do_debug("mptcp-over-tcp-prototype.c - CLIENT: Connected to server %s.\n", inet_ntoa(address_remote.sin_addr));
+    printf("mptcp-over-tcp-prototype.c - CLIENT: Connected to server %s.\n", inet_ntoa(address_remote.sin_addr));
   }
 
   // use select() to handle two descriptors at once
@@ -398,7 +398,7 @@ int main(int argc, char *argv[])
     {
       from_app = 1;
       nread = cread(fd_vif_i, buffer, BUFFER_SIZE);
-      do_debug("mptcp-over-tcp-prototype.c - Read %d bytes from %s.\n", nread, name_vif_i);
+      printf("mptcp-over-tcp-prototype.c - Read %d bytes from %s.\n", nread, name_vif_i);
     }
 
     if(from_app == 1)
@@ -449,7 +449,7 @@ int main(int argc, char *argv[])
         nwrite = cwrite(fd_vif_2, buffer, nread);
         do_debug("mptcp-over-tcp-prototype.c - Written %d bytes to %s.\n", nwrite, name_vif_2);
       }
-      else if(shila_packet.ip.destination.s_addr == inet_addr(VIF_2_IP))
+      else if(shila_packet.ip.destination.s_addr == inet_addr(VIF_3_IP))
       {
         // now buffer[] contains a full packet or frame, write it into the tun/tap interface
         nwrite = cwrite(fd_vif_3, buffer, nread);
