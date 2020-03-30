@@ -32,7 +32,7 @@
 #define NAME_VIF_3 "tun35"
 #define NAME_VIF_I "tun66"
 
-#define DEBUG         0
+#define DEBUG         1
 #define DEBUG_PARSING 0
 
 int debug         = DEBUG;
@@ -153,7 +153,7 @@ int tun_alloc(char *dev, int flags) {
   char *clonedev = "/dev/net/tun";
 
   if( (fd = open(clonedev , O_RDWR)) < 0 ) {
-    perror("tunrelais.c - Opening /dev/net/tun.");
+    perror("mptcp-over-tcp-prototype.c - Opening /dev/net/tun.");
     return fd;
   }
 
@@ -166,7 +166,7 @@ int tun_alloc(char *dev, int flags) {
   }
 
   if( (err = ioctl(fd, TUNSETIFF, (void *)&ifr)) < 0 ) {
-    perror("tunrelais.c - ioctl(TUNSETIFF).");
+    perror("mptcp-over-tcp-prototype.c - ioctl(TUNSETIFF).");
     close(fd);
     return err;
   }
@@ -185,7 +185,7 @@ int cread(int fd, char *buf, int n){
   int nread;
 
   if((nread=read(fd, buf, n)) < 0){
-    perror("tunrelais.c - Reading data.");
+    perror("mptcp-over-tcp-prototype.c - Reading data.");
     exit(1);
   }
   return nread;
@@ -200,7 +200,7 @@ int cwrite(int fd, char *buf, int n){
   int nwrite;
 
   if((nwrite=write(fd, buf, n)) < 0){
-    perror("tunrelais.c - Writing data.");
+    perror("mptcp-over-tcp-prototype.c - Writing data.");
     exit(1);
   }
   return nwrite;
@@ -269,41 +269,46 @@ int main(int argc, char *argv[])
   socklen_t len_remote;
 
   // Initialize the tun interfaces
-  {
     if ( (fd_vif_1 = tun_alloc(name_vif_1, IFF_TUN | IFF_NO_PI)) < 0 )
     {
-      my_err("tunrelais.c - Error connecting to tun/tap interface %s!\n", name_vif_1);
+      my_err("mptcp-over-tcp-prototype.c - Error connecting to tun/tap interface %s!\n", name_vif_1);
       exit(1);
     }
-    do_debug("tunrelais.c - Successfully connected to interface %s.\n", name_vif_1);
+    do_debug("mptcp-over-tcp-prototype.c - Successfully connected to interface %s.\n", name_vif_1);
 
     if ( (fd_vif_2 = tun_alloc(name_vif_2, IFF_TUN | IFF_NO_PI)) < 0 )
     {
-      my_err("tunrelais.c - Error connecting to tun/tap interface %s!\n", name_vif_2);
+      my_err("mptcp-over-tcp-prototype.c - Error connecting to tun/tap interface %s!\n", name_vif_2);
       exit(1);
     }
-    do_debug("tunrelais.c - Successfully connected to interface %s.\n", name_vif_2);
+    do_debug("mptcp-over-tcp-prototype.c - Successfully connected to interface %s.\n", name_vif_2);
 
     if ( (fd_vif_3 = tun_alloc(name_vif_3, IFF_TUN | IFF_NO_PI)) < 0 )
     {
-      my_err("tunrelais.c - Error connecting to tun/tap interface %s!\n", name_vif_3);
+      my_err("mptcp-over-tcp-prototype.c - Error connecting to tun/tap interface %s!\n", name_vif_3);
       exit(1);
     }
-    do_debug("tunrelais.c - Successfully connected to interface %s.\n", name_vif_3);
+    do_debug("mptcp-over-tcp-prototype.c - Successfully connected to interface %s.\n", name_vif_3);
 
     if ( (fd_vif_i = tun_alloc(name_vif_i, IFF_TUN | IFF_NO_PI)) < 0 )
     {
-      my_err("tunrelais.c - Error connecting to tun/tap interface %s!\n", name_vif_i);
+      my_err("mptcp-over-tcp-prototype.c - Error connecting to tun/tap interface %s!\n", name_vif_i);
       exit(1);
     }
-    do_debug("tunrelais.c - Successfully connected to interface %s.\n", name_vif_i);
-    }
+    do_debug("mptcp-over-tcp-prototype.c - Successfully connected to interface %s.\n", name_vif_i);
+
+  // Create the socket for the sub level connection
+  if ( (fd_socket = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+  {
+    perror("mptcp-over-tcp-prototype.c - socket().");
+    exit(1);
+  }
 
   if(SERVER)
   {
     /* avoid EADDRINUSE error on bind() */
     if(setsockopt(fd_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&optval, sizeof(optval)) < 0) {
-      perror("tunrelais.c - setsockopt()");
+      perror("mptcp-over-tcp-prototype.c - setsockopt()");
       exit(1);
     }
 
@@ -312,12 +317,12 @@ int main(int argc, char *argv[])
     address_local.sin_addr.s_addr = htonl(INADDR_ANY);
     address_local.sin_port = htons(SERVER_PORT);
     if (bind(fd_socket, (struct sockaddr*) &address_local, sizeof(address_local)) < 0) {
-      perror("tunrelais.c - bind()");
+      perror("mptcp-over-tcp-prototype.c - bind()");
       exit(1);
     }
 
     if (listen(fd_socket, 5) < 0) {
-      perror("tunrelais.c - listen()");
+      perror("mptcp-over-tcp-prototype.c - listen()");
       exit(1);
     }
 
@@ -325,21 +330,14 @@ int main(int argc, char *argv[])
     len_remote = sizeof(address_remote);
     memset(&address_remote, 0, len_remote);
     if ((fd_net = accept(fd_socket, (struct sockaddr*)&address_remote, &len_remote)) < 0) {
-      perror("tunrelais.c - accept()");
+      perror("mptcp-over-tcp-prototype.c - accept()");
       exit(1);
     }
 
-    do_debug("tunrelais.c - SERVER: Client connected from %s\n", inet_ntoa(address_remote.sin_addr));
+    do_debug("mptcp-over-tcp-prototype.c - SERVER: Client connected from %s\n", inet_ntoa(address_remote.sin_addr));
   }
   else
   {
-    // Create the socket for the sub level connection
-    if ( (fd_socket = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-    {
-      perror("tunrelais.c - socket().");
-      exit(1);
-    }
-
     memset(&address_remote, 0, sizeof(address_remote));
     address_remote.sin_family      = AF_INET;
     address_remote.sin_addr.s_addr = inet_addr(SERVER_IP);
@@ -347,12 +345,12 @@ int main(int argc, char *argv[])
 
     if (connect(fd_socket, (struct sockaddr*) &address_remote, sizeof(address_remote)) < 0)
     {
-      perror("tunrelais.c - connect().");
+      perror("mptcp-over-tcp-prototype.c - connect().");
       exit(1);
     }
 
     fd_net = fd_socket;
-    do_debug("tunrelais.c - CLIENT: Connected to server %s.\n", inet_ntoa(address_remote.sin_addr));
+    do_debug("mptcp-over-tcp-prototype.c - CLIENT: Connected to server %s.\n", inet_ntoa(address_remote.sin_addr));
   }
 
   // use select() to handle two descriptors at once
@@ -371,32 +369,32 @@ int main(int argc, char *argv[])
     ret = select(max_fd + 1, &rd_set, NULL, NULL, NULL);
 
     if (ret < 0 && errno == EINTR) { continue; }
-    if (ret < 0) { perror("tunrelais.c - select()."); exit(1); }
+    if (ret < 0) { perror("mptcp-over-tcp-prototype.c - select()."); exit(1); }
 
     if(FD_ISSET(fd_vif_1, &rd_set))
     {
       // Data came through app.
       from_app = 1;
       nread = cread(fd_vif_1, buffer, BUFFER_SIZE);
-      do_debug("tunrelais.c - Read %d bytes from %s.\n", nread, name_vif_1);
+      do_debug("mptcp-over-tcp-prototype.c - Read %d bytes from %s.\n", nread, name_vif_1);
     }
     if(FD_ISSET(fd_vif_2, &rd_set))
     {
       from_app = 1;
       nread = cread(fd_vif_2, buffer, BUFFER_SIZE);
-      do_debug("tunrelais.c - Read %d bytes from %s.\n", nread, name_vif_2);
+      do_debug("mptcp-over-tcp-prototype.c - Read %d bytes from %s.\n", nread, name_vif_2);
     }
     if(FD_ISSET(fd_vif_3, &rd_set))
     {
       from_app = 1;
       nread = cread(fd_vif_3, buffer, BUFFER_SIZE);
-      do_debug("tunrelais.c - Read %d bytes from %s.\n", nread, name_vif_3);
+      do_debug("mptcp-over-tcp-prototype.c - Read %d bytes from %s.\n", nread, name_vif_3);
     }
     if(FD_ISSET(fd_vif_i, &rd_set))
     {
       from_app = 1;
       nread = cread(fd_vif_i, buffer, BUFFER_SIZE);
-      do_debug("tunrelais.c - Read %d bytes from %s.\n", nread, name_vif_i);
+      do_debug("mptcp-over-tcp-prototype.c - Read %d bytes from %s.\n", nread, name_vif_i);
     }
 
     if(from_app == 1)
@@ -416,7 +414,7 @@ int main(int argc, char *argv[])
       plength = htons(nread);
       nwrite = cwrite(fd_net, (char *)&plength, sizeof(plength));
       nwrite = cwrite(fd_net, buffer, nread);
-      do_debug("tunrelais.c - Forward %d bytes to the network.\n", nwrite);
+      do_debug("mptcp-over-tcp-prototype.c - Forward %d bytes to the network.\n", nwrite);
 
     }
 
@@ -428,7 +426,7 @@ int main(int argc, char *argv[])
 
       // read packet
       nread = read_n(fd_net, buffer, ntohs(plength));
-      do_debug("tunrelais.c - Read %d bytes from the network.\n", nread);
+      do_debug("mptcp-over-tcp-prototype.c - Read %d bytes from the network.\n", nread);
 
       // parse the packet
       struct shila_packet_header shila_packet;
@@ -439,25 +437,25 @@ int main(int argc, char *argv[])
       {
         // now buffer[] contains a full packet or frame, write it into the tun/tap interface
         nwrite = cwrite(fd_vif_1, buffer, nread);
-        do_debug("tunrelais.c - Written %d bytes to %s.\n", nwrite, name_vif_1);
+        do_debug("mptcp-over-tcp-prototype.c - Written %d bytes to %s.\n", nwrite, name_vif_1);
       }
       else if(shila_packet.ip.destination.s_addr == inet_addr(VIF_2_IP))
       {
         // now buffer[] contains a full packet or frame, write it into the tun/tap interface
         nwrite = cwrite(fd_vif_2, buffer, nread);
-        do_debug("tunrelais.c - Written %d bytes to %s.\n", nwrite, name_vif_2);
+        do_debug("mptcp-over-tcp-prototype.c - Written %d bytes to %s.\n", nwrite, name_vif_2);
       }
       else if(shila_packet.ip.destination.s_addr == inet_addr(VIF_2_IP))
       {
         // now buffer[] contains a full packet or frame, write it into the tun/tap interface
         nwrite = cwrite(fd_vif_3, buffer, nread);
-        do_debug("tunrelais.c - Written %d bytes to %s.\n", nwrite, name_vif_3);
+        do_debug("mptcp-over-tcp-prototype.c - Written %d bytes to %s.\n", nwrite, name_vif_3);
       }
       else if(shila_packet.ip.destination.s_addr == inet_addr(VIF_I_IP))
       {
         // now buffer[] contains a full packet or frame, write it into the tun/tap interface
         nwrite = cwrite(fd_vif_i, buffer, nread);
-        do_debug("tunrelais.c - Written %d bytes to %s.\n", nwrite, name_vif_i);
+        do_debug("mptcp-over-tcp-prototype.c - Written %d bytes to %s.\n", nwrite, name_vif_i);
       }
     }
   }
