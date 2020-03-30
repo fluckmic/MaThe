@@ -10,6 +10,7 @@ kill $(pidof mptcp-over-tcp-prototype)  2> /dev/null
 kill $(pidof tcpclient)                 2> /dev/null
 kill $(pidof tcpserver)                 2> /dev/null
 killall wireshark                       2> /dev/null
+sudo ip rule delete to 10.7.0.9 iif lo table tun33
 
 # Load round robin mptcp module and activate it
 /sbin/modprobe mptcp_rr
