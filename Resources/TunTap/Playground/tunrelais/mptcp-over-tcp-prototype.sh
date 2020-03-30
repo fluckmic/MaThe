@@ -11,8 +11,6 @@ kill $(pidof tcpclient)                 2> /dev/null
 kill $(pidof tcpserver)                 2> /dev/null
 killall wireshark                       2> /dev/null
 
-ip rule delete to 10.7.0.9 iif lo              table tun33
-
 # Load round robin mptcp module and activate it
 /sbin/modprobe mptcp_rr
 sysctl -w net.mptcp.mptcp_scheduler=roundrobin 2> /dev/null
@@ -33,47 +31,9 @@ sleep 1
 
 ./mptcp-over-tcp-prototype &
 
-sleep 1
+sleep 5
 
-ip link set tun33 up
-ip addr add 10.0.1.1/24 dev tun33
+./routing-config.sh
 
-ip link set tun34 up
-ip addr add 10.0.2.1/24 dev tun34
-
-ip link set tun35 up
-ip addr add 10.0.3.1/24 dev tun35
-
-ip link set tun66 up
-ip addr add 10.7.0.9/24 dev tun66
-
-#sleep 5
-
-#ip rule add to 10.7.0.9 iif lo              table tun33
-
-#ip route del 10.7.0.9 dev tun66 table local
-#ip route add 10.7.0.9 dev tun66 table local
-#ip route del 10.0.1.1 dev tun33 table local
-#ip route add 10.0.1.1 dev tun33 table local
-#ip route del 10.0.2.1 dev tun34 table local
-#ip route add 10.0.2.1 dev tun34 table local
-#ip route del 10.0.3.1 dev tun35 table local
-#ip route add 10.0.3.1 dev tun35 table local
-
-#ip route flush cache
-
-
-#ip rule add to 10.7.0.9 iif lo              table tun33
-#ip route delete table local 10.0.1.1
-#ip route delete table local 10.0.2.1
-#ip route delete table local 10.0.3.1
-
-#ip rule add table 252 priority 2
-#ip route add local 10.7.0.9 dev tun66 proto kernel scope host src 10.7.0.9 table 252
-#ip route add local 10.0.1.1 dev lo proto kernel scope host src 10.0.1.1 table 252
-#ip route add local 10.0.2.1 dev lo proto kernel scope host src 10.0.2.1 table 252
-#ip route add local 10.0.3.1 dev lo proto kernel scope host src 10.0.3.1 table 252
-
-sleep 1
-
-wireshark &
+ip netns exec shila-engress wireshark &
+ip netns exec shila-ingress wireshark &
