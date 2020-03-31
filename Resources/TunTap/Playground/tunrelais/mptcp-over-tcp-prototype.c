@@ -257,7 +257,7 @@ int main(int argc, char *argv[])
 
   char name_vif_1[] = NAME_VIF_1;
   char name_vif_2[] = NAME_VIF_2;
-  //char name_vif_3[] = NAME_VIF_3;
+  char name_vif_3[] = NAME_VIF_3;
   char name_vif_i[] = NAME_VIF_I;
 
   int fd_vif_1, fd_vif_2, fd_vif_3, fd_vif_i, fd_socket, fd_net, max_fd;
