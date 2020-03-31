@@ -24,12 +24,12 @@
 
 #define VIF_1_IP "10.0.1.1"
 #define VIF_2_IP "10.0.2.1"
-#define VIF_3_IP "10.0.3.1"
+//#define VIF_3_IP "10.0.3.1"
 #define VIF_I_IP "10.7.0.9"
 
 #define NAME_VIF_1 "tun33"
 #define NAME_VIF_2 "tun34"
-#define NAME_VIF_3 "tun35"
+//#define NAME_VIF_3 "tun35"
 #define NAME_VIF_I "tun66"
 
 #define DEBUG         0
@@ -257,10 +257,11 @@ int main(int argc, char *argv[])
 
   char name_vif_1[] = NAME_VIF_1;
   char name_vif_2[] = NAME_VIF_2;
-  char name_vif_3[] = NAME_VIF_3;
+  //char name_vif_3[] = NAME_VIF_3;
   char name_vif_i[] = NAME_VIF_I;
 
-  int fd_vif_1, fd_vif_2, fd_vif_3, fd_vif_i, fd_socket, fd_net, max_fd;
+  int fd_vif_1, fd_vif_2, fd_vif_i, fd_socket, fd_net, max_fd;
+  //int fd_vif_3;
   int optval = 1;
 
   struct sockaddr_in address_local, address_remote;
@@ -283,12 +284,14 @@ int main(int argc, char *argv[])
     }
     do_debug("mptcp-over-tcp-prototype.c - Successfully connected to interface %s.\n", name_vif_2);
 
+    /*
     if ( (fd_vif_3 = tun_alloc(name_vif_3, IFF_TUN | IFF_NO_PI)) < 0 )
     {
       my_err("mptcp-over-tcp-prototype.c - Error connecting to tun/tap interface %s!\n", name_vif_3);
       exit(1);
     }
     do_debug("mptcp-over-tcp-prototype.c - Successfully connected to interface %s.\n", name_vif_3);
+    */
 
     if ( (fd_vif_i = tun_alloc(name_vif_i, IFF_TUN | IFF_NO_PI)) < 0 )
     {
@@ -357,112 +360,110 @@ int main(int argc, char *argv[])
     printf("mptcp-over-tcp-prototype.c - CLIENT: Connected to server %s.\n", inet_ntoa(address_remote.sin_addr));
   }
 
-  // use select() to handle two descriptors at once
-  max_fd = max(max(max(max(fd_vif_1, fd_vif_2), fd_vif_3), fd_vif_i), fd_net);
+  //max_fd = max(max(max(max(fd_vif_1, fd_vif_2), fd_vif_3), fd_vif_i), fd_net);
+  max_fd = max(max(max(fd_vif_1, fd_vif_2), fd_vif_i), fd_net);
 
   while(1)
   {
-    int from_app = 0;
-    int ret;
-    fd_set rd_set;
+      int from_app = 0;
+      int ret;
+      fd_set rd_set;
 
-    FD_ZERO(&rd_set);
-    FD_SET(fd_vif_1, &rd_set); FD_SET(fd_vif_2, &rd_set); FD_SET(fd_net, &rd_set);
-    FD_SET(fd_vif_3, &rd_set); FD_SET(fd_vif_i, &rd_set);
+      FD_ZERO(&rd_set);
+      FD_SET(fd_vif_1, &rd_set); FD_SET(fd_vif_2, &rd_set); FD_SET(fd_net, &rd_set); FD_SET(fd_vif_i, &rd_set);
+      //FD_SET(fd_vif_3, &rd_set);
 
-    ret = select(max_fd + 1, &rd_set, NULL, NULL, NULL);
+      ret = select(max_fd + 1, &rd_set, NULL, NULL, NULL);
 
-    if (ret < 0 && errno == EINTR) { continue; }
-    if (ret < 0) { perror("mptcp-over-tcp-prototype.c - select()."); exit(1); }
+      if (ret < 0 && errno == EINTR) { continue; }
+      if (ret < 0) { perror("mptcp-over-tcp-prototype.c - select()."); exit(1); }
 
-    if(FD_ISSET(fd_vif_1, &rd_set))
-    {
-      // Data came through app.
-      from_app = 1;
-      nread = cread(fd_vif_1, buffer, BUFFER_SIZE);
-      do_debug("mptcp-over-tcp-prototype.c - Read %d bytes from %s.\n", nread, name_vif_1);
-    }
-    if(FD_ISSET(fd_vif_2, &rd_set))
-    {
-      from_app = 1;
-      nread = cread(fd_vif_2, buffer, BUFFER_SIZE);
-      do_debug("mptcp-over-tcp-prototype.c - Read %d bytes from %s.\n", nread, name_vif_2);
-    }
-    if(FD_ISSET(fd_vif_3, &rd_set))
-    {
-      from_app = 1;
-      nread = cread(fd_vif_3, buffer, BUFFER_SIZE);
-      do_debug("mptcp-over-tcp-prototype.c - Read %d bytes from %s.\n", nread, name_vif_3);
-    }
-    if(FD_ISSET(fd_vif_i, &rd_set))
-    {
-      from_app = 1;
-      nread = cread(fd_vif_i, buffer, BUFFER_SIZE);
-      printf("mptcp-over-tcp-prototype.c - Read %d bytes from %s.\n", nread, name_vif_i);
-    }
-
-    if(from_app == 1)
-    {
-      // parse the packet
-      struct shila_packet_header shila_packet;
-      memset(&shila_packet, 0, sizeof(shila_packet));
-      ret = parse_packet(buffer, nread, &shila_packet);
-
-      // print it
-      if(DEBUG_PARSING)
+      if(FD_ISSET(fd_vif_1, &rd_set))
       {
-        print_packet(&shila_packet);
+        // Data came through app.
+        from_app = 1;
+        nread = cread(fd_vif_1, buffer, BUFFER_SIZE);
+        do_debug("mptcp-over-tcp-prototype.c - Read %d bytes from %s.\n", nread, name_vif_1);
+      }
+      else if(FD_ISSET(fd_vif_2, &rd_set))
+      {
+        from_app = 1;
+        nread = cread(fd_vif_2, buffer, BUFFER_SIZE);
+        do_debug("mptcp-over-tcp-prototype.c - Read %d bytes from %s.\n", nread, name_vif_2);
+      }/*
+      else if(FD_ISSET(fd_vif_3, &rd_set))
+      {
+        from_app = 1;
+        nread = cread(fd_vif_3, buffer, BUFFER_SIZE);
+        do_debug("mptcp-over-tcp-prototype.c - Read %d bytes from %s.\n", nread, name_vif_3);
+      }*/
+      else if(FD_ISSET(fd_vif_i, &rd_set))
+      {
+        from_app = 1;
+        nread = cread(fd_vif_i, buffer, BUFFER_SIZE);
+        printf("mptcp-over-tcp-prototype.c - Read %d bytes from %s.\n", nread, name_vif_i);
+      }
+      else if(FD_ISSET(fd_net, &rd_set))
+      {
+        // Read length
+        nread = read_n(fd_net, (char *)&plength, sizeof(plength));
+        if(nread == 0) { break;  } // ctrl-c at the other end
+
+        // read packet
+        nread = read_n(fd_net, buffer, ntohs(plength));
+        do_debug("mptcp-over-tcp-prototype.c - Read %d bytes from the network.\n", nread);
+
+        // parse the packet
+        struct shila_packet_header shila_packet;
+        memset(&shila_packet, 0, sizeof(shila_packet));
+        ret = parse_packet(buffer, nread, &shila_packet);
+
+        if(shila_packet.ip.destination.s_addr == inet_addr(VIF_1_IP))
+        {
+          // now buffer[] contains a full packet or frame, write it into the tun/tap interface
+          nwrite = cwrite(fd_vif_1, buffer, nread);
+          do_debug("mptcp-over-tcp-prototype.c - Written %d bytes to %s.\n", nwrite, name_vif_1);
+        }
+        else if(shila_packet.ip.destination.s_addr == inet_addr(VIF_2_IP))
+        {
+          // now buffer[] contains a full packet or frame, write it into the tun/tap interface
+          nwrite = cwrite(fd_vif_2, buffer, nread);
+          do_debug("mptcp-over-tcp-prototype.c - Written %d bytes to %s.\n", nwrite, name_vif_2);
+        }/*
+        else if(shila_packet.ip.destination.s_addr == inet_addr(VIF_3_IP))
+        {
+          // now buffer[] contains a full packet or frame, write it into the tun/tap interface
+          nwrite = cwrite(fd_vif_3, buffer, nread);
+          do_debug("mptcp-over-tcp-prototype.c - Written %d bytes to %s.\n", nwrite, name_vif_3);
+        }*/
+        else if(shila_packet.ip.destination.s_addr == inet_addr(VIF_I_IP))
+        {
+          // now buffer[] contains a full packet or frame, write it into the tun/tap interface
+          nwrite = cwrite(fd_vif_i, buffer, nread);
+          do_debug("mptcp-over-tcp-prototype.c - Written %d bytes to %s.\n", nwrite, name_vif_i);
+        }
       }
 
-      // write length + packet
-      plength = htons(nread);
-      nwrite = cwrite(fd_net, (char *)&plength, sizeof(plength));
-      nwrite = cwrite(fd_net, buffer, nread);
-      do_debug("mptcp-over-tcp-prototype.c - Forward %d bytes to the network.\n", nwrite);
-
-    }
-
-    if(FD_ISSET(fd_net, &rd_set))
-    {
-      // Read length
-      nread = read_n(fd_net, (char *)&plength, sizeof(plength));
-      if(nread == 0) { break;  } // ctrl-c at the other end
-
-      // read packet
-      nread = read_n(fd_net, buffer, ntohs(plength));
-      do_debug("mptcp-over-tcp-prototype.c - Read %d bytes from the network.\n", nread);
-
-      // parse the packet
-      struct shila_packet_header shila_packet;
-      memset(&shila_packet, 0, sizeof(shila_packet));
-      ret = parse_packet(buffer, nread, &shila_packet);
-
-      if(shila_packet.ip.destination.s_addr == inet_addr(VIF_1_IP))
+      if(from_app == 1)
       {
-        // now buffer[] contains a full packet or frame, write it into the tun/tap interface
-        nwrite = cwrite(fd_vif_1, buffer, nread);
-        do_debug("mptcp-over-tcp-prototype.c - Written %d bytes to %s.\n", nwrite, name_vif_1);
-      }
-      else if(shila_packet.ip.destination.s_addr == inet_addr(VIF_2_IP))
-      {
-        // now buffer[] contains a full packet or frame, write it into the tun/tap interface
-        nwrite = cwrite(fd_vif_2, buffer, nread);
-        do_debug("mptcp-over-tcp-prototype.c - Written %d bytes to %s.\n", nwrite, name_vif_2);
-      }
-      else if(shila_packet.ip.destination.s_addr == inet_addr(VIF_3_IP))
-      {
-        // now buffer[] contains a full packet or frame, write it into the tun/tap interface
-        nwrite = cwrite(fd_vif_3, buffer, nread);
-        do_debug("mptcp-over-tcp-prototype.c - Written %d bytes to %s.\n", nwrite, name_vif_3);
-      }
-      else if(shila_packet.ip.destination.s_addr == inet_addr(VIF_I_IP))
-      {
-        // now buffer[] contains a full packet or frame, write it into the tun/tap interface
-        nwrite = cwrite(fd_vif_i, buffer, nread);
-        do_debug("mptcp-over-tcp-prototype.c - Written %d bytes to %s.\n", nwrite, name_vif_i);
+        // parse the packet
+        struct shila_packet_header shila_packet;
+        memset(&shila_packet, 0, sizeof(shila_packet));
+        ret = parse_packet(buffer, nread, &shila_packet);
+
+        // print it
+        if(DEBUG_PARSING)
+        {
+          print_packet(&shila_packet);
+        }
+
+        // write length + packet
+        plength = htons(nread);
+        nwrite = cwrite(fd_net, (char *)&plength, sizeof(plength));
+        nwrite = cwrite(fd_net, buffer, nread);
+        do_debug("mptcp-over-tcp-prototype.c - Forward %d bytes to the network.\n", nwrite);
       }
     }
-  }
 
   return(0);
 }
