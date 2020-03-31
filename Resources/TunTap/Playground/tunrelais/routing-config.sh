@@ -27,6 +27,8 @@ ip netns exec shila-ingress ip addr add 10.7.0.9/24 dev tun66
 ip netns exec shila-ingress ip link set tun66 up
 
 # Creates the routing entries necessary for MPTCP
+ip netns exec shila-engress ip rule add to 10.7.0.9 iif lo table 1
+
 ip netns exec shila-engress ip rule add from 10.0.1.1 table 1
 ip netns exec shila-engress ip route add table 1 default dev tun33 scope link
 
@@ -35,8 +37,6 @@ ip netns exec shila-engress ip route add table 2 default dev tun34 scope link
 
 ip netns exec shila-engress ip rule add from 10.0.3.1 table 3
 ip netns exec shila-engress ip route add table 3 default dev tun35 scope link
-
-#ip netns exec shila-engress ip rule add to 10.7.0.9 iif lo table 1
 
 ip netns exec shila-ingress ip rule add from 10.7.0.9 table 1
 ip netns exec shila-ingress ip route add table 1 default dev tun66 scope link

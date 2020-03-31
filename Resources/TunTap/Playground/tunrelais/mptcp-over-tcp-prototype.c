@@ -18,7 +18,7 @@
 // buffer for reading from tun/tap interface, must be >= 1500
 #define BUFFER_SIZE 2000
 
-#define SERVER 1
+#define SERVER 0
 #define SERVER_IP "192.168.1.58"
 #define SERVER_PORT 55555
 
@@ -370,7 +370,7 @@ int main(int argc, char *argv[])
 
       FD_ZERO(&rd_set);
       FD_SET(fd_vif_1, &rd_set); FD_SET(fd_vif_2, &rd_set); FD_SET(fd_net, &rd_set); FD_SET(fd_vif_i, &rd_set);
-      //FD_SET(fd_vif_3, &rd_set);
+      FD_SET(fd_vif_3, &rd_set);
 
       ret = select(max_fd + 1, &rd_set, NULL, NULL, NULL);
 
