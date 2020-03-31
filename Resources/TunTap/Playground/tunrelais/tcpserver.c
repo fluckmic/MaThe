@@ -15,7 +15,7 @@
 
  #define IP_SERVER "10.7.0.9"
  #define PORT_SERVER 2727
- #define BUFFER_SIZE 1000
+ #define BUFFER_SIZE 100
 
  /*
  struct ip_option_header
@@ -33,6 +33,8 @@ void communicator(int fd_socket)
   printf("tcpserver.c - Starting endless data exchange.\n");
 
   char input_buffer[BUFFER_SIZE];
+  char output_buffer[] = "PONG.";
+  /*
   char output_buffer[] = "00 01 02 03 04 05 06 07 08 09 \
                           10 11 12 13 14 15 16 17 18 19 \
                           20 21 22 23 24 25 26 27 28 29 \
@@ -43,6 +45,7 @@ void communicator(int fd_socket)
                           70 71 72 73 74 75 76 77 78 79 \
                           80 81 82 83 84 85 86 87 88 89 \
                           90 91 92 93 94 95 96 97 98 99";
+  */
 
   while(1)
   {
