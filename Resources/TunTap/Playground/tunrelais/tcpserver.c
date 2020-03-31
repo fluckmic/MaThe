@@ -48,7 +48,7 @@ void communicator(int fd_socket)
   {
     bzero(input_buffer, sizeof(input_buffer));
     read(fd_socket, input_buffer, sizeof(input_buffer));
-    sleep(10);
+    sleep(1);
     write(fd_socket, output_buffer, sizeof(output_buffer));
   }
 }

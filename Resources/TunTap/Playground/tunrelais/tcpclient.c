@@ -45,7 +45,7 @@
 
    while(1)
    {
-     sleep(5);
+     sleep(1);
      write(fd_socket, output_buffer, sizeof(output_buffer));
      bzero(input_buffer, sizeof(input_buffer));
      ssize_t nread = read(fd_socket, input_buffer, sizeof(input_buffer));
