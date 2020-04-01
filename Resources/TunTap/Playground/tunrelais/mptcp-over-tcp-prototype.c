@@ -18,7 +18,7 @@
 // buffer for reading from tun/tap interface, must be >= 1500
 #define BUFFER_SIZE 2000
 
-#define SERVER 0
+#define SERVER 1
 #define SERVER_IP "192.168.1.58"
 #define SERVER_PORT 55555
 
@@ -400,7 +400,7 @@ int main(int argc, char *argv[])
       {
         from_app = 1;
         nread = cread(fd_vif_i, buffer, BUFFER_SIZE);
-        printf("mptcp-over-tcp-prototype.c - Read %d bytes from %s.\n", nread, name_vif_i);
+        do_debug("mptcp-over-tcp-prototype.c - Read %d bytes from %s.\n", nread, name_vif_i);
       }
       else if(FD_ISSET(fd_net, &rd_set))
       {
